@@ -1,0 +1,134 @@
+---
+title: '**Analysis of Tooth Growth in Guinea Pigs**'
+author: '*Rohit Padebettu*'
+date: "September 4, 2016"
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 2.8
+    highlight: tango
+    toc_depth: 1
+  html_document: default
+---
+## **Overview**
+*In this exercise we try to explore and analyze the Tooth Growth data in a sample of 60 guinea pigs.
+We explore the relationship between length of odonoblasts and dosage amount of Vitamin C. We also explore the relationship between length of odonoblasts and the delivery method of Vitamin C. Based on certain assumptions we are able to test and accept the alternate hypothesis that higher dosage of Vitamin C leads to longer odonoblasts. We are also able to test and accept the alternate hypothesis that Oranje Juice is a better delivery mechnism of Vitamin C than ascorbic acid at lower dosage amounts.*
+
+## Loading and Exploring the Data
+We begin by loading the libraries and data needed for the analysis. We then display the summary properties of the data
+```{r, echo=FALSE,warning=FALSE}
+library(datasets)
+library(ggplot2)
+
+TG<-as.data.frame(ToothGrowth)
+summary(TG)
+```
+
+We proceed to generate a box plot to visualize the relationship between Tooth Growth, dosage amount of Vitamin C and delivery mechanism of Vitamin C. We can see from the plot below that Tooth Growth has strong relation to both dosage amount and delivery mechanism. 
+
+```{r, echo=FALSE}
+LenBox <- ggplot(data = TG,aes(x = supp,y = len))+
+    geom_boxplot(aes(fill = supp))+
+    facet_wrap(~dose)+
+    labs(title ="Tooth Growth vs Dose+Supp",x = "Dosage",y = "Length")
+
+print(LenBox)
+```
+
+From the plot above, we can visually hypothesize that
+1. As dosage amount increases from 0.5 to 2, the average length also increases for both delivery mechanisms
+2. At dosage levels of 0.5 and 1, Oranje Juice leads to larger tooth growth than Ascorbic Acid.
+3. At the dosage level of 2, although the Oranje Juice and Ascorbic Acid seem to lead to same average tooth growth, the variation in lengths is lesser for OJ than VC.
+
+## Testing relationship between Tooth Growth and Dosage amounts
+1. To test the relationship between tooth growth and dosage amounts, we begin by first making another box plot specifically for dosage levels and length.
+
+```{r, echo=FALSE}
+LenDoseBox<- ggplot(TG,aes(x = TG$dose, y = TG$len ,group = TG$dose))+
+                geom_boxplot(aes(fill= factor(TG$dose)))+
+                labs(title = "Tooth Growth vs Dose",x = "Dosage",y = "Length")
+
+print(LenDoseBox)
+```
+
+2. We divide the data into 3 sets, one for each dosage level, to enable us to conduct pairwise t tests
+```{r, echo=FALSE}
+len_0.5 <- TG$len[TG$dose==0.5]
+len_1 <-  TG$len[TG$dose==1]
+len_2 <-  TG$len[TG$dose==2]
+```
+
+3. We proceed to test the null hypothesis that there is no significant relationship between tooth growth and dosage amount of vitamin C at the 95% confidence level for each pair. 
+```{r,echo = TRUE}
+#Dose 0.5 vs Dose 1
+test_0.5_1 <- t.test(x = len_1,y = len_0.5, paired = FALSE,var.equal = TRUE)
+```
+```{r, echo = FALSE}
+paste("P-Value:",test_0.5_1$p.value, "Confidence Interval:",test_0.5_1$conf.int[1]," - ",test_0.5_1$conf.int[2])
+```
+```{r, echo = TRUE}
+#Dose 1 vs Dose 2
+test_1_2 <- t.test(x = len_2,y = len_1, paired = FALSE,var.equal = TRUE)
+```
+```{r, echo = FALSE}
+paste("P-Value:", test_1_2$p.value, "Confidence Interval:",test_1_2$conf.int[1]," - ",test_1_2$conf.int[2])
+```
+```{r, echo = TRUE}
+#Dose 2 vs Dose 0.5
+test_2_0.5 <- t.test(x = len_2,y = len_0.5, paired = FALSE,var.equal = TRUE)
+```
+```{r, echo = FALSE}
+paste("P-Value:", test_2_0.5$p.value, "Confidence Interval:",test_2_0.5$conf.int[1]," - ",test_2_0.5$conf.int[2])
+```
+RESULT : The p-values for all the three tests above are less than 0.05 and zero is not included in any of the three confidence intervals. Based on these results we can REJECT the NULL Hypothesis and accept the Alternate Hypothesis 
+
+## Testing relationship between Tooth Growth and Delivery Methods
+1. To test the relationship between tooth growth and delivery methods, we again begin by plotting another box plot specifically for delivery types and length.
+
+```{r, echo=FALSE}
+LenSuppBox<- ggplot(TG,aes(x = TG$supp, y = TG$len ,group = TG$supp))+
+                geom_boxplot(aes(fill=supp))+
+                labs(title ="Tooth Growth vs Delivery Type",x = "Supplement",y = "Length")
+
+print(LenSuppBox)
+```
+
+2. We divide the data into 2 sets, one for each dosage level, to enable us to conduct a t-test
+```{r, echo=TRUE}
+lenOJ <- TG$len[TG$supp=='OJ']; lenVC <- TG$len[TG$supp=='VC']
+```
+
+3. We proceed to test the null hypothesis that there is no significant difference between Delivery Types at the 95% confidence level. 
+```{r,echo = TRUE}
+testOJ <- t.test(x = lenOJ,y = lenVC, paired = FALSE,var.equal = TRUE)
+```
+```{r, echo = FALSE}
+paste("P-Value:", testOJ$p.value, "Confidence Interval:",testOJ$conf.int[1]," - ",testOJ$conf.int[2])
+```
+
+RESULT: The p-value for the test is above 0.05 and the confidence interval contains zero. Thus we are unable to reject the null hypothesis using a two-sided t-test at 95% confidence level.
+
+4. We next proceed to perform a t-test on the alternate hypothesis that OJ is a better delivery mechanism to Ascorbic Acid for lower dosage levels at the 95% confidence level. 
+```{r, echo = TRUE}
+lenOJ2 <- TG$len[TG$supp=='OJ' & TG$dose!=2]; lenVC2 <- TG$len[TG$supp=='VC' & TG$dose!=2]
+testOJ2 <- t.test(x = lenOJ2,y = lenVC2, paired = FALSE,var.equal = TRUE)
+```
+```{r, echo = FALSE}
+paste("P-Value:", testOJ2$p.value, "Confidence Interval:",testOJ2$conf.int[1]," - ",testOJ2$conf.int[2])
+```
+
+RESULT: The p-value for this test is less than 0.05 and the confidence interval doesn't include zero. We are therefore able to reject the null hypothesis.
+
+## **Assumptions**
+* We assume that the distribution is iid normal distribution 
+* We also assume that the population variance is same as sample variance
+
+## **Conclusions**
+From our analysis, we can conclude that:
+1.As dosage amount increases from 0.5 to 2, the average length also increases for both delivery mechanisms
+2. At dosage levels of 0.5 and 1, Oranje Juice leads to larger tooth growth than Ascorbic Acid.
+
+
+
+
+
