@@ -46,11 +46,12 @@ t.test(x = lenOJ,y = lenVC, paired = FALSE,var.equal = TRUE)$p.value
 
 # Null Hypothesis that there is no difference in teeth growth due to Supplement
 # Alternate Hypothesis that OJ supplement leads to higher teeth growth
+lenOJ2 <- TG$len[TG$supp=='OJ' & TG$dose!=2]
+lenVC2 <- TG$len[TG$supp=='VC' & TG$dose!=2]
+t.test(x = lenOJ2,y = lenVC2, paired = FALSE,var.equal = TRUE)$conf.int
+t.test(x = lenOJ2,y = lenVC2, paired = FALSE,var.equal = TRUE)$p.value
 
-t.test(x = lenOJ,y = lenVC, paired = FALSE,var.equal = TRUE,alternative = 'greater')$conf
-t.test(x = lenOJ,y = lenVC, paired = FALSE,var.equal = TRUE, alternative = 'greater')$p.value
-
-#Since P value is <5% for the one sided t test we can reject the null hypothesis at 95% confidence interval level
+#Since P value is <5% for the t test we can reject the null hypothesis at 95% confidence interval level
 
 
 
